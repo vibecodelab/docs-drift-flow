@@ -1,0 +1,58 @@
+name: Docs auto-merge
+
+# The docs-drift routine opens pull requests from docs/drift-* branches and
+# labels one `docs-auto` when every change restates a fact it read in the code.
+# This workflow is the reviewer for those: it merges a labelled PR only when the
+# PR changes documentation and nothing else, and the tests still pass.
+# An unlabelled PR is left alone for a person to review.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+    branches: [main]
+
+# The repository default is read-only; this job needs to merge.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    if: >-
+      startsWith(github.head_ref, 'docs/drift-') &&
+      contains(github.event.pull_request.labels.*.name, 'docs-auto')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check that only documentation changed
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          files=$(git diff --name-only "$BASE...$HEAD")
+          echo "Changed files:"
+          echo "$files"
+          unexpected=$(echo "$files" | grep -vE '^(docs/content/[^/]+\.md|README\.md)$' || true)
+          if [ -n "$unexpected" ]; then
+            echo "::error::This PR changes more than documentation, so it will not be merged automatically:"
+            echo "$unexpected"
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Run the tests
+        run: |
+          npm ci
+          npm test
+
+      - name: Merge
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge "${{ github.event.pull_request.number }}" --squash --delete-branch

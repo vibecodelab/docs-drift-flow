@@ -1,0 +1,20 @@
+{
+  "name": "docs-drift-flow",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo: a Claude Code routine that keeps documentation in step with an API",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "fastify": "^5.12.1"
+  },
+  "devDependencies": {
+    "vitest": "^4.1.11"
+  }
+}
