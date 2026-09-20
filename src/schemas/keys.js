@@ -3,8 +3,8 @@ import { badRequest } from '../errors.js';
 // The API surface. Every accepted parameter is defined here, and the
 // documentation's parameter table is written from it.
 export const SPEC = {
-  length: { type: 'int', min: 8, max: 128, default: 24 },
-  count: { type: 'int', min: 1, max: 50, default: 1 },
+  length: { type: 'int', min: 8, max: 128, default: 32 },
+  count: { type: 'int', min: 1, max: 25, default: 1 },
   alphabet: { type: 'enum', values: ['base58', 'hex', 'alphanumeric'], default: 'base58' },
   excludeAmbiguous: { type: 'boolean', default: true },
   prefix: { type: 'string', maxLength: 16, default: '' },

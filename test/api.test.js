@@ -21,7 +21,7 @@ describe('POST /v1/keys', () => {
 
     const body = res.json();
     expect(body.keys).toHaveLength(1);
-    expect(body.keys[0]).toHaveLength(24);
+    expect(body.keys[0]).toHaveLength(32);
   });
 
   it('honours length and count', async () => {
