@@ -10,7 +10,7 @@ curl -X POST 'http://localhost:3000/v1/keys?length=16&alphabet=hex&prefix=sk_'
 
 ```json
 {
-  "keys": ["sk_9c4a7e2f6b3d8a14"],
+  "keys": ["sk_3e246ea26d43f4dc"],
   "count": 1,
   "length": 16,
   "alphabet": "hex"

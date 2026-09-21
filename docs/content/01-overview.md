@@ -10,7 +10,7 @@ curl -X POST 'http://localhost:3000/v1/keys?length=32&count=3'
 
 ```json
 {
-  "keys": ["7kPqXm2vRtNw9bJhGf4sYcZd3nQx", "…", "…"],
+  "keys": ["NMKJbh7gvajQwcNAcqDrQtTP2kkiWbVZ", "…", "…"],
   "count": 3,
   "length": 32,
   "alphabet": "base58"
