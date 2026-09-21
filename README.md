@@ -4,35 +4,40 @@ A demo of documentation that repairs itself, using a
 [Claude Code routine](https://code.claude.com/docs/en/routines):
 
 ```
-merged PR ──▶ weekly routine ──▶ docs PR ──label──▶ workflow ──▶ main
-                  (judgement)                       (checks)
+merged PR ──▶ weekly routine ──▶ docs PR ──▶ you review and merge
 ```
 
 The service is a throwaway: a key generator with five parameters. The point is
 everything around it — what happens to the reference documentation in
 `docs/content/` when someone changes those five parameters and forgets the docs.
 
-## The split
+## How it works
 
-A routine writes the prose, because deciding which sentences are now false is
-judgement. A GitHub Actions workflow decides whether that PR may merge, because
-"did this change documentation and nothing else, and do the tests still pass" is
-not judgement — and an agent should not be the one certifying its own work.
-
-Concretely, once a week the routine:
+Once a week, the routine:
 
 1. Lists merged PRs that do not carry the `docs-checked` label
 2. Keeps the ones that touched the API surface, and stops if none did
 3. Reads the current code, not just the diffs, and corrects `docs/content/`
-4. Opens one PR for the batch, labelling it `docs-auto` only if every change
-   restates a fact it read in the code
+4. Opens one PR for the batch, listing what the code now does against what the
+   docs said, and flagging anything it was unsure of
 5. Labels the source PRs **last**, so a failed run is retried next week rather
    than silently skipped
 
+The routine writes the prose, because deciding which sentences are now false is
+judgement. A person decides whether it merges.
+
+### Auto-merge, available but switched off
+
 [`.github/workflows/docs-auto-merge.yml`](.github/workflows/docs-auto-merge.yml)
-then merges a `docs-auto` PR if, and only if, the diff is confined to
-`docs/content/` and `README.md` and `npm test` passes. A PR the routine was
-unsure about waits for a person.
+can take that last step too. It merges a docs PR only if the diff is confined to
+`docs/content/` and `README.md` and the tests pass — the checks an agent
+shouldn't certify for itself. It is **disabled** here, so every docs PR waits
+for review.
+
+To turn it on, run `gh workflow enable "Docs auto-merge"`, and add a step to
+[`routine/prompt.md`](routine/prompt.md) telling the routine to label a PR
+`docs-auto` when every change restates a fact it read in the code. The workflow
+acts only on that label, so an unlabelled PR still waits for a person.
 
 ## Layout
 
@@ -41,7 +46,7 @@ unsure about waits for a person.
 | `src/` | The key generator. `schemas/keys.js` holds the parameter spec that the docs describe |
 | `docs/content/` | The reference documentation, one Markdown file per section |
 | `routine/prompt.md` | The routine's instructions. Its saved prompt is only a pointer to this file, so changing its behaviour is an ordinary pull request |
-| `.github/workflows/` | The merge gate, and the tests |
+| `.github/workflows/` | The tests, and the auto-merge gate (disabled) |
 
 ## Run it locally
 
@@ -71,21 +76,20 @@ curl -X POST 'http://localhost:3000/v1/keys?count=3&alphabet=hex'
 ## See it work
 
 The repository ships consistent: the docs match the code exactly. To create
-drift, merge a pull request that changes the API and leaves the documentation
-alone — for example, raising the default `length` in
-[`src/schemas/keys.js`](src/schemas/keys.js) from 24 to 32, or narrowing
-`count` from 50 to 25.
+drift, merge the `demo/longer-keys` branch. It raises the default `length` in
+[`src/schemas/keys.js`](src/schemas/keys.js) from 24 to 32 and narrows `count`
+from 50 to 25, updating the tests but deliberately not the docs.
 
 Then open the routine and click **Run now** rather than waiting for Monday. It
-should find that PR unlabelled, notice the documented default no longer matches
-the code, and open a PR fixing `docs/content/03-parameters.md` — including the
-worked example in `01-overview.md` that quoted the old default.
+should find that PR unlabelled, notice the documented default and range no
+longer match the code, and open a PR fixing `docs/content/03-parameters.md`.
+Review it and merge.
 
 ## What it doesn't do
 
 Watch direct pushes. The routine looks at merged pull requests, so anything
-pushed straight to `main` is invisible to it. On a public repository you can
-close that gap with a ruleset requiring pull requests for `main`.
+pushed straight to `main` would be invisible to it. This repository closes that
+gap with a ruleset: changes to `main` must arrive as pull requests.
 
 Catch behaviour that leaves no trace in the surface. Rewrite how keys are
 generated while keeping every parameter, default and response identical, and

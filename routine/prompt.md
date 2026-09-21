@@ -78,14 +78,8 @@ pull requests that have not been checked yet.
      documentation change, giving what the code now does and what the docs said.
      Add a "Not changed" list for anything you considered and deliberately left
      alone, and a "Needs a human" list for anything you could not verify.
-   - **Say whether it can land without a person.** If every change in the PR
-     restates a fact you read in the code, and the "Needs a human" list is
-     empty, label it: `gh label create docs-auto --color 1D76DB --force`
-     (harmless if it exists), then `gh pr edit <pr> --add-label docs-auto`. A
-     workflow then checks the PR changes documentation only and that the tests
-     still pass, and merges it. One judgement call anywhere in the batch means
-     no label: say why in the body and let an editor read it.
-   - Never merge it yourself, labelled or not.
+   - A person reviews and merges every docs PR, so write the body for them:
+     lead with anything you were unsure about. Never merge it yourself.
 
 7. **Mark the batch checked, last.** Once the docs PR is open — or once you have
    concluded the batch needed no documentation change — label every source PR:
